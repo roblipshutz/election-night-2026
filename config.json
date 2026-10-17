@@ -1,0 +1,472 @@
+{
+  "_comment": "Edit this file to change races, sources or timing. See README.md.",
+  "title": "Palo Alto Election Night 2026",
+  "subtitle": "General election, November 3, 2026",
+  "poll_seconds": 90,
+  "port": 8000,
+  "county": {
+    "name": "Santa Clara County",
+    "clarity_url": "PASTE_ELECTION_NIGHT_RESULTS_LINK_HERE",
+    "_help": "On election night, open the county's results page (linked from vote.santaclaracounty.gov), copy the address from the browser and paste it here. It looks like https://results.enr.clarityelections.com/CA/Santa_Clara/123456/web.345678/#/summary"
+  },
+  "state": {
+    "api_base": "https://api.sos.ca.gov/returns"
+  },
+  "contests": [
+    {
+      "id": "council",
+      "title": "Palo Alto City Council",
+      "group": "Palo Alto City Council",
+      "short": "",
+      "seats": 3,
+      "threshold": null,
+      "choices": [
+        {
+          "name": "Ed Lauing",
+          "detail": "Incumbent",
+          "focus": true
+        },
+        {
+          "name": "Vicki Veenker",
+          "detail": "Incumbent",
+          "focus": true
+        },
+        {
+          "name": "Bryna Chang",
+          "detail": "Planning & Transportation Commissioner",
+          "focus": true
+        },
+        {
+          "name": "Yu \"Yudy\" Deng",
+          "detail": "Parks & Recreation Commissioner",
+          "focus": true
+        },
+        {
+          "name": "Gary Gechlik",
+          "detail": "",
+          "focus": false
+        },
+        {
+          "name": "Raymond Lee Goins",
+          "detail": "",
+          "focus": false
+        },
+        {
+          "name": "Brian Hamachek",
+          "detail": "",
+          "focus": false
+        },
+        {
+          "name": "Henry Etzkowitz",
+          "detail": "",
+          "focus": false
+        }
+      ],
+      "source": "county",
+      "contest_match": [
+        "PALO ALTO",
+        "COUNCIL"
+      ]
+    },
+    {
+      "id": "pausd",
+      "title": "Palo Alto Unified School Board",
+      "group": "PAUSD Board of Education",
+      "short": "",
+      "seats": 2,
+      "threshold": null,
+      "choices": [
+        {
+          "name": "Linda Henigin",
+          "detail": "Open seat race",
+          "focus": true
+        },
+        {
+          "name": "John Craig",
+          "detail": "Open seat race",
+          "focus": true
+        },
+        {
+          "name": "Avery Wang",
+          "detail": "Open seat race",
+          "focus": true
+        }
+      ],
+      "source": "county",
+      "contest_match": [
+        "PALO ALTO UNIFIED"
+      ]
+    },
+    {
+      "id": "J",
+      "title": "Measure J",
+      "group": "Local measures",
+      "short": "Palo Alto ½¢ sales tax for city services",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "county",
+      "contest_match": [
+        "MEASURE J"
+      ]
+    },
+    {
+      "id": "RTM",
+      "title": "Measure RTM",
+      "group": "Local measures",
+      "short": "Regional ½¢ transit sales tax",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "county",
+      "contest_match": [
+        "RTM"
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "Prop 1",
+      "group": "State propositions",
+      "short": "Housing bond ($11.25B)",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "1"
+    },
+    {
+      "id": "P2",
+      "title": "Prop 2",
+      "group": "State propositions",
+      "short": "Rainy-day fund cap",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "2"
+    },
+    {
+      "id": "P3",
+      "title": "Prop 3",
+      "group": "State propositions",
+      "short": "Extend high-earner tax",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "3"
+    },
+    {
+      "id": "P4",
+      "title": "Prop 4",
+      "group": "State propositions",
+      "short": "Public funds for campaigns",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "4"
+    },
+    {
+      "id": "P5",
+      "title": "Prop 5",
+      "group": "State propositions",
+      "short": "Recall replacement timing",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "5"
+    },
+    {
+      "id": "P37",
+      "title": "Prop 37",
+      "group": "State propositions",
+      "short": "Lower-cost mortgages",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "37"
+    },
+    {
+      "id": "P38",
+      "title": "Prop 38",
+      "group": "State propositions",
+      "short": "Immunology research bond",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "38"
+    },
+    {
+      "id": "P39",
+      "title": "Prop 39",
+      "group": "State propositions",
+      "short": "Voter ID",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "39"
+    },
+    {
+      "id": "P40",
+      "title": "Prop 40",
+      "group": "State propositions",
+      "short": "Billionaire tax",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "40"
+    },
+    {
+      "id": "P41",
+      "title": "Prop 41",
+      "group": "State propositions",
+      "short": "Audits of new taxes",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "41"
+    },
+    {
+      "id": "P42",
+      "title": "Prop 42",
+      "group": "State propositions",
+      "short": "No personal property taxes",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "42"
+    },
+    {
+      "id": "P43",
+      "title": "Prop 43",
+      "group": "State propositions",
+      "short": "Higher bar for special taxes",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "43"
+    },
+    {
+      "id": "P44",
+      "title": "Prop 44",
+      "group": "State propositions",
+      "short": "Clinic patient-care spending",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "44"
+    },
+    {
+      "id": "P45",
+      "title": "Prop 45",
+      "group": "State propositions",
+      "short": "Faster environmental review",
+      "seats": null,
+      "threshold": 0.5,
+      "choices": [
+        {
+          "name": "Yes",
+          "focus": true
+        },
+        {
+          "name": "No",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_prop": "45"
+    },
+    {
+      "id": "ins",
+      "title": "Insurance Commissioner",
+      "group": "Statewide offices",
+      "short": "Statewide",
+      "seats": 1,
+      "threshold": null,
+      "choices": [
+        {
+          "name": "Jane Kim",
+          "detail": "Democrat, former SF supervisor",
+          "focus": true
+        },
+        {
+          "name": "Ben Allen",
+          "detail": "Democrat, state senator",
+          "focus": true
+        }
+      ],
+      "source": "state",
+      "state_endpoint": "insurance-commissioner"
+    },
+    {
+      "id": "water7",
+      "title": "Valley Water Board, District 7",
+      "group": "Local races",
+      "short": "Includes Palo Alto",
+      "seats": 1,
+      "threshold": null,
+      "choices": [
+        {
+          "name": "Rebecca Eisenberg",
+          "detail": "Incumbent",
+          "focus": true
+        },
+        {
+          "name": "Pete Dailey",
+          "detail": "Los Altos City Council member",
+          "focus": true
+        }
+      ],
+      "source": "county",
+      "contest_match": [
+        "WATER",
+        "DISTRICT 7"
+      ]
+    }
+  ]
+}

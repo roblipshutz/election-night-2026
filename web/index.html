@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palo Alto Election Night 2026</title>
+<style>
+/* Stage layout: one dark projection panel, three columns, section colour-coded cards */
+:root {
+  --stage: #0b1424; --card: #13213a; --line: #24365a; --ink: #f4f7fc; --ink-2: #a9b8d4; --track: #22314f; --muted-bar: #5b6b8c;
+  --win: #4ade80; --lose: #fb7185; --ref: #e2e8f0;
+  --c-council: #38bdf8; --c-board: #fbbf24; --c-measure: #c084fc; --c-state: #fb923c; --c-water: #2dd4bf;
+  --sans: "Segoe UI", "Segoe UI Variable", Arial, sans-serif;
+  --serif: Georgia, Cambria, "Times New Roman", serif;
+  --fs: clamp(15px, 1.05vw, 26px); --fs-sm: clamp(12px, 0.8vw, 19px); --fs-big: clamp(28px, 2.6vw, 62px);
+  --gap: clamp(8px, .8vw, 20px); --radius: 10px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--stage); color: var(--ink); }
+body { font-family: var(--sans); font-size: var(--fs); line-height: 1.3; padding: clamp(10px, 1vw, 26px) clamp(12px, 1.3vw, 32px); }
+.en { display: grid; gap: var(--gap); }
+.en-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding-bottom: clamp(6px, .6vw, 14px); border-bottom: 2px solid var(--line); }
+.en-head h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 2.5vw, 60px); margin: 0; line-height: 1.05; }
+.en-take { margin: 4px 0 0; color: var(--ink-2); font-size: clamp(15px, 1.15vw, 28px); }
+.en-status { display: flex; gap: clamp(12px, 1.6vw, 40px); flex-wrap: wrap; font-size: var(--fs-sm); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+.en-status b { display: block; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: 0; font-size: var(--fs); }
+.en-status b.err { color: var(--lose); }
+.en-cols { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
+@media (min-width: 900px) { .en-cols { grid-template-columns: 1fr 0.95fr 1.25fr; } }
+.en-col { display: grid; gap: var(--gap); align-content: start; min-width: 0; }
+.en-card { --sec: var(--ink-2); background: var(--card); border: 1px solid var(--line); border-top: 5px solid var(--sec); border-radius: var(--radius); padding: clamp(8px, .8vw, 20px) clamp(10px, 1vw, 24px); min-width: 0; display: grid; gap: clamp(5px, .45vw, 12px); align-content: start; }
+#council { --sec: var(--c-council); } #pausd { --sec: var(--c-board); }
+#J, #RTM { --sec: var(--c-measure); } #ins, #props { --sec: var(--c-state); } #water7 { --sec: var(--c-water); }
+.en-card h2 { margin: 0; font-size: clamp(17px, 1.4vw, 34px); font-weight: 600; color: var(--sec); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.en-card h2 small { font-size: var(--fs-sm); font-weight: 400; color: var(--ink-2); }
+.en-t { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.en-t th { text-align: left; font-weight: 500; color: var(--ink-2); font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: .05em; padding: 0 6px 4px; border-bottom: 1px solid var(--line); }
+.en-t th.n, .en-t td.n { text-align: right; }
+.en-t td { padding: clamp(4px, .4vw, 10px) 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.en-t tbody tr:last-child td { border-bottom: 0; }
+.en-name { font-weight: 600; }
+.en-race td { font-size: clamp(15px, 1.2vw, 30px); }
+.en-race td.pct { font-family: var(--serif); font-size: clamp(18px, 1.6vw, 40px); }
+.en-race tr.lead td.pct { color: var(--win); }
+.en-bar { height: clamp(6px, .5vw, 12px); border-radius: 99px; background: var(--track); margin-top: 5px; position: relative; overflow: hidden; }
+.en-bar > i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--muted-bar); transition: width .8s ease; }
+tr.lead .en-bar > i { background: var(--sec); }
+.en-bar > i.pass, .en-ynbar > i.pass { background: var(--win); }
+.en-bar > i.fail, .en-ynbar > i.fail { background: var(--lose); }
+.en-others { font-size: var(--fs-sm); color: var(--ink-2); margin: 0; font-variant-numeric: tabular-nums; }
+.en-pill { display: inline-block; font-size: var(--fs-sm); font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; }
+.en-pill.ok { color: #052e16; background: var(--win); border-color: var(--win); }
+.en-pill.bad { color: #4c0519; background: var(--lose); border-color: var(--lose); }
+.en-m .row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.en-m .big { font-family: var(--serif); font-size: var(--fs-big); line-height: 1; font-variant-numeric: tabular-nums; }
+.sub { color: var(--ink-2); font-size: var(--fs-sm); }
+.en-yn { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.en-ynbar { height: clamp(12px, 1vw, 24px); border-radius: 99px; background: var(--track); position: relative; overflow: hidden; }
+.en-ynbar > i { position: absolute; inset: 0 auto 0 0; background: var(--muted-bar); transition: width .8s ease; }
+.en-ynbar::after, .en-props .en-bar::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2px dashed var(--ref); opacity: .7; }
+.en-props td { padding-block: clamp(2px, .26vw, 7px); }
+.en-props td.num { color: var(--sec); font-weight: 700; width: 2.6em; }
+.en-props td.yes { width: 30%; }
+.en-props td.en-name { line-height: 1.15; }
+.en-props .yv { display: block; text-align: right; font-weight: 600; }
+.en-duel .names { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.en-duel .names > div:last-child { text-align: right; }
+.en-duel .nm { font-weight: 600; font-size: clamp(16px, 1.25vw, 30px); display: block; }
+.en-duel h2 { flex-wrap: wrap; }
+.en-duel .pv { font-family: var(--serif); font-size: clamp(20px, 1.7vw, 42px); font-variant-numeric: tabular-nums; line-height: 1.1; display: block; }
+.en-duel .pv.win { color: var(--win); }
+.en-duelbar { display: flex; height: clamp(12px, 1vw, 24px); border-radius: 99px; overflow: hidden; background: var(--track); }
+.en-duelbar > i { display: block; height: 100%; transition: width .8s ease; }
+.en-duelbar > i.a { background: var(--sec); }
+.en-duelbar > i.b { background: var(--muted-bar); margin-left: auto; }
+.en-foot { font-size: var(--fs-sm); color: var(--ink-2); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="en">
+  <header class="en-head">
+    <div>
+      <h1 id="title">Palo Alto Election Night 2026</h1>
+      <p class="en-take" id="takeaway">Loading results…</p>
+    </div>
+    <div class="en-status">
+      <span>County<b id="asof-county">—</b></span>
+      <span>State<b id="asof-state">—</b></span>
+    </div>
+  </header>
+
+  <div class="en-cols">
+    <div class="en-col">
+      <div class="en-card" id="council">
+        <h2>City Council <small>Top 3 win</small></h2>
+        <table class="en-t en-race"><thead><tr><th>Candidate</th><th class="n">Votes</th><th class="n">Share</th><th class="n">Status</th></tr></thead><tbody></tbody></table>
+        <p class="en-others" id="council-others"></p>
+      </div>
+      <div class="en-card" id="pausd">
+        <h2>School Board <small>Top 2 win</small></h2>
+        <table class="en-t en-race"><thead><tr><th>Candidate</th><th class="n">Votes</th><th class="n">Share</th><th class="n">Status</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="en-col">
+      <div class="en-card en-m" id="J"></div>
+      <div class="en-card en-m" id="RTM"></div>
+      <div class="en-card en-duel" id="ins"></div>
+      <div class="en-card en-duel" id="water7"></div>
+    </div>
+    <div class="en-col">
+      <div class="en-card" id="props">
+        <h2>State propositions <small>Majority to pass</small></h2>
+        <table class="en-t en-props"><thead><tr><th>#</th><th>Measure</th><th class="n">Yes</th><th class="n">Status</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="en-foot"><span id="foot-left"></span><span id="foot-right"></span></div>
+</div>
+
+<script>
+const REFRESH_MS = 20000;  // how often the page re-reads data/results.json
+const fmtN = (v) => (v == null ? '—' : Number(v).toLocaleString('en-US'));
+const fmtP = (v) => (v == null ? '—' : Number(v).toFixed(1) + '%');
+const pillClass = (s) => (s === 'Leading' || s === 'Passing' ? 'en-pill ok' : s === 'Failing' ? 'en-pill bad' : 'en-pill');
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const lastName = (n) => n.split(' ').slice(-1)[0];
+const counted = (c) => c.choices.some((x) => (x.votes || 0) > 0);
+const sortChoices = (c) => c.choices.slice().sort((a, b) => counted(c) ? (b.votes || 0) - (a.votes || 0) : lastName(a.name).localeCompare(lastName(b.name)));
+const asof = (iso) => iso ? 'as of ' + new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'no results yet';
+
+function drawRace(c) {
+  const tbody = document.querySelector('#' + c.id + ' tbody');
+  tbody.replaceChildren();
+  const all = sortChoices(c);
+  const max = Math.max(1e-9, ...all.map((x) => x.pct || 0));
+  all.filter((x) => x.focus !== false).forEach((x) => {
+    const tr = el('tr', x.status === 'Leading' ? 'lead' : '');
+    const td1 = el('td'); td1.append(el('span', 'en-name', x.name));
+    const bar = el('div', 'en-bar'); const fill = el('i'); fill.style.width = ((x.pct || 0) / max * 100) + '%';
+    bar.append(fill); td1.append(bar);
+    const td4 = el('td', 'n'); td4.append(el('span', pillClass(x.status), x.status));
+    tr.append(td1, el('td', 'n', fmtN(x.votes)), el('td', 'n pct', fmtP(x.pct)), td4);
+    tbody.append(tr);
+  });
+  return all.filter((x) => x.focus === false);
+}
+
+function drawMeasure(c) {
+  const box = document.getElementById(c.id); box.replaceChildren();
+  const h = el('h2'); h.append(document.createTextNode(c.title), el('small', null, c.short)); box.append(h);
+  const row = el('div', 'row');
+  row.append(el('span', 'big', fmtP(c.yes_pct)), el('span', 'sub', 'Yes'), el('span', pillClass(c.status), c.status));
+  box.append(row);
+  const bar = el('div', 'en-ynbar'); const fill = el('i', c.status === 'Passing' ? 'pass' : c.status === 'Failing' ? 'fail' : '');
+  fill.style.width = (c.yes_pct || 0) + '%'; bar.append(fill); box.append(bar);
+  const yes = c.choices.find((x) => x.name === 'Yes') || {}; const no = c.choices.find((x) => x.name === 'No') || {};
+  const yn = el('div', 'en-yn'); yn.append(el('span', null, 'Yes ' + fmtN(yes.votes)), el('span', null, 'No ' + fmtN(no.votes)));
+  box.append(yn);
+}
+
+function drawDuel(c) {
+  const box = document.getElementById(c.id); box.replaceChildren();
+  const h = el('h2'); h.append(document.createTextNode(c.title), el('small', null, c.short || '')); box.append(h);
+  const [a, b] = sortChoices(c);
+  const names = el('div', 'names');
+  [a, b].filter(Boolean).forEach((x) => {
+    const d = el('div');
+    d.append(el('span', 'nm', x.name), el('span', 'pv' + (x.status === 'Leading' ? ' win' : ''), fmtP(x.pct)),
+      el('span', 'sub', x.votes == null ? (x.detail || '') : fmtN(x.votes)));
+    names.append(d);
+  });
+  box.append(names);
+  const bar = el('div', 'en-duelbar'); const ia = el('i', 'a'); const ib = el('i', 'b');
+  ia.style.width = (a && a.pct || 0) + '%'; ib.style.width = (b && b.pct || 0) + '%';
+  bar.append(ia, ib); box.append(bar);
+}
+
+function drawProps(list) {
+  const tbody = document.querySelector('#props tbody'); tbody.replaceChildren();
+  list.forEach((c) => {
+    const tr = el('tr');
+    const td3 = el('td', 'n yes'); td3.append(el('span', 'yv', fmtP(c.yes_pct)));
+    const bar = el('div', 'en-bar'); const fill = el('i', c.status === 'Passing' ? 'pass' : c.status === 'Failing' ? 'fail' : '');
+    fill.style.width = (c.yes_pct || 0) + '%'; bar.append(fill); td3.append(bar);
+    const td4 = el('td', 'n'); td4.append(el('span', pillClass(c.status), c.status));
+    tr.append(el('td', 'num', c.title.replace('Prop ', '')), el('td', 'en-name', c.short), td3, td4);
+    tbody.append(tr);
+  });
+}
+
+function render(doc) {
+  const by = Object.fromEntries(doc.contests.map((c) => [c.id, c]));
+  document.getElementById('title').textContent = doc.title || 'Election Night';
+  const src = doc.sources || {};
+  [['county', 'asof-county'], ['state', 'asof-state']].forEach(([k, id]) => {
+    const s = src[k] || {}; const b = document.getElementById(id);
+    b.textContent = s.ok ? asof(s.as_of) : 'not updating';
+    b.className = s.ok ? '' : 'err';
+    b.title = s.error || s.label || '';
+  });
+  if (by.council) {
+    const others = drawRace(by.council);
+    document.getElementById('council-others').textContent = others.length
+      ? 'Also running: ' + others.map((x) => x.name + (x.pct != null ? ' ' + fmtP(x.pct) : '') + (x.status === 'Leading' ? ' (leading)' : '')).join(' · ') : '';
+  }
+  if (by.pausd) drawRace(by.pausd);
+  ['J', 'RTM'].forEach((id) => by[id] && drawMeasure(by[id]));
+  ['ins', 'water7'].forEach((id) => by[id] && drawDuel(by[id]));
+  drawProps(doc.contests.filter((c) => c.group === 'State propositions'));
+
+  const leaders = (c) => c ? sortChoices(c).filter((x) => x.status === 'Leading').map((x) => lastName(x.name)) : [];
+  const parts = [];
+  if (by.council && counted(by.council)) parts.push('Council: ' + leaders(by.council).join(', '));
+  if (by.pausd && counted(by.pausd)) parts.push('Board: ' + leaders(by.pausd).join(', '));
+  ['J', 'RTM'].forEach((id) => { const m = by[id]; if (m && m.status !== 'Awaiting') parts.push(m.title + ' ' + m.status.toLowerCase()); });
+  document.getElementById('takeaway').textContent = parts.length ? 'Leading now · ' + parts.join(' · ') : (doc.subtitle || '') + ' · polls close at 8 p.m.';
+  document.getElementById('foot-left').textContent = 'Sources: Santa Clara County Registrar of Voters · California Secretary of State';
+  document.getElementById('foot-right').textContent = 'Checked ' + new Date(doc.fetched_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    + (doc.manual_override_rows ? ' · includes hand-entered numbers' : '');
+}
+
+async function load() {
+  try {
+    const r = await fetch('../data/results.json?t=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) render(await r.json());
+  } catch (e) { console.warn('Could not read results', e); }
+}
+load();
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>
