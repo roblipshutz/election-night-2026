@@ -12,6 +12,33 @@
   "state": {
     "api_base": "https://api.sos.ca.gov/returns"
   },
+  "_help_other_counties": "Used only for Measure RTM's five-county total. A county with no link, or whose site fails before it ever reports, is simply left out of the total and the board says so.",
+  "other_counties": [
+    {
+      "name": "Alameda",
+      "format": "html_tables",
+      "url": "https://www.alamedacountyca.gov/rovresults/260/index.htm",
+      "_help": "Already set: this is the county's Nov 3, 2026 results page (it lists Measure RTM). If it stops working, find 'Election Results' at acvote.alamedacountyca.gov and paste that address."
+    },
+    {
+      "name": "Contra Costa",
+      "format": "clarity",
+      "url": "PASTE_ELECTION_NIGHT_RESULTS_LINK_HERE",
+      "_help": "On election night open https://www.contracostavote.gov/november-3-2026-election-results/ and copy its 'results' link. It looks like https://results.enr.clarityelections.com/CA/Contra_Costa/123456/ (the 126374 link there today is the June primary, not this election)."
+    },
+    {
+      "name": "San Mateo",
+      "format": "html_tables",
+      "url": "PASTE_ELECTION_NIGHT_RESULTS_LINK_HERE",
+      "_help": "Not posted yet. Probably https://smcacre.gov/elections/november-3-2026-election-results - find it from smcacre.gov/elections ('Election Results') and paste the address."
+    },
+    {
+      "name": "San Francisco",
+      "format": "sf_xml",
+      "url": "https://www.sfelections.org/results/20261103/data/summary.xml",
+      "_help": "Already set: the Department of Elections' downloadable XML for Nov 3, 2026 (its 'XML' button at sfelections.org/results/20261103/)."
+    }
+  ],
   "contests": [
     {
       "id": "council",
@@ -123,7 +150,7 @@
       "id": "RTM",
       "title": "Measure RTM",
       "group": "Local measures",
-      "short": "Regional ½¢ transit sales tax",
+      "short": "Regional transit sales tax · five-county total",
       "seats": null,
       "threshold": 0.5,
       "choices": [
@@ -139,6 +166,13 @@
       "source": "county",
       "contest_match": [
         "RTM"
+      ],
+      "_help_counties": "RTM passes on a majority of all votes in the five counties combined. The total adds Santa Clara (above) and each county listed here; their links are under other_counties.",
+      "also_counties": [
+        "Alameda",
+        "Contra Costa",
+        "San Mateo",
+        "San Francisco"
       ]
     },
     {

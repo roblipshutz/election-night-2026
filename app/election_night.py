@@ -52,6 +52,42 @@ def standings(contest: dict) -> None:
         contest["status"] = "Awaiting" if not counted else "Counting"
 
 
+def combine_counties(c: dict, home: tuple, others: dict, manual: dict, previous: dict, verbose: bool) -> list[dict]:
+    """For a contest with also_counties (Measure RTM): one entry per county with its own votes.
+    home is (name, contests, status) for the main county; others maps name -> (entry, contests, status).
+    A county whose site fails keeps its last good numbers; one with no numbers is left out of the total."""
+    rows = [home] + [(n, *others[n][1:]) if n in others else (n, {}, None) for n in c["also_counties"]]
+    out = []
+    for name, contests, status in rows:
+        match = c["contest_match"]
+        if name in others:
+            match = others[name][0].get("contest_match", {}).get(c["id"], match)
+        found = sources.find_contest(contests, match) if contests else None
+        if contests and not found and verbose:
+            print(f"  ! {name} has no contest matching {match} (for {c['id']})")
+        votes, stale = {}, False
+        for ch in c["choices"]:
+            v = sources.match_choice(ch["name"], found.votes) if found else None
+            if v is None and not (status and status.ok):
+                v = previous.get((c["id"], name, ch["name"]))
+                stale = stale or v is not None
+            key = (f"{c['id']}:{name}", ch["name"])
+            if key in manual:
+                v = manual[key]
+            votes[ch["name"]] = v
+        has = sum(v or 0 for v in votes.values()) > 0  # a zero report is not "in" yet
+        out.append({
+            "name": name,
+            "votes": votes,
+            "included": has,
+            "ok": bool(status and status.ok),
+            "stale": stale,
+            "label": (status.label if status else "") or "",
+            "error": (status.error if status else f"{name} is not set up in config.json other_counties"),
+        })
+    return out
+
+
 def refresh(cfg: dict, verbose: bool = False) -> dict:
     contests_cfg = cfg["contests"]
     state_eps = sorted({c["state_endpoint"] for c in contests_cfg if c.get("state_endpoint")})
@@ -60,6 +96,14 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
     st_cands, st_props, state_status = sources.fetch_state(cfg["state"]["api_base"], state_eps)
     manual = sources.read_manual(MANUAL)
 
+    # Other counties are only fetched if some contest asks for them (Measure RTM).
+    wanted = {n for c in contests_cfg for n in c.get("also_counties", [])}
+    others = {}
+    for entry in cfg.get("other_counties", []):
+        if entry.get("name") in wanted:
+            others[entry["name"]] = (entry, *sources.fetch_other_county(entry))
+    home_name = cfg["county"].get("name", "County").replace(" County", "")
+
     # Keep last good numbers if a source fails this round.
     previous = {}
     if RESULTS.exists():
@@ -67,6 +111,9 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
             for c in json.loads(RESULTS.read_text(encoding="utf-8")).get("contests", []):
                 for ch in c["choices"]:
                     previous[(c["id"], ch["name"])] = ch.get("votes")
+                for bc in c.get("by_county") or []:
+                    for name, v in bc["votes"].items():
+                        previous[(c["id"], bc["name"], name)] = v
         except Exception:
             pass
 
@@ -74,7 +121,12 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
     for c in contests_cfg:
         reported = None
         failed = False
-        if c["source"] == "county":
+        by_county = None
+        if c["source"] == "county" and c.get("also_counties"):
+            by_county = combine_counties(c, (home_name, county, county_status), others, manual, previous, verbose)
+            inc = [bc for bc in by_county if bc["included"]]
+            reported = {ch["name"]: sum(bc["votes"][ch["name"]] or 0 for bc in inc) for ch in c["choices"]} if inc else None
+        elif c["source"] == "county":
             found = sources.find_contest(county, c["contest_match"]) if county else None
             reported = found.votes if found else None
             failed = not county_status.ok
@@ -100,6 +152,13 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
         contest = {k: c.get(k) for k in ("id", "title", "group", "short", "seats", "threshold", "source")}
         contest["choices"] = choices
         standings(contest)
+        if by_county is not None:
+            for bc in by_county:
+                total = sum(v or 0 for v in bc["votes"].values())
+                bc["yes_pct"] = round(100 * (bc["votes"].get("Yes") or 0) / total, 1) if total else None
+            contest["by_county"] = by_county
+            contest["counties_included"] = [bc["name"] for bc in by_county if bc["included"]]
+            contest["counties_missing"] = [bc["name"] for bc in by_county if not bc["included"]]
         out_contests.append(contest)
 
     doc = {
@@ -110,6 +169,7 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
         "sources": {
             "county": vars(county_status),
             "state": vars(state_status),
+            **{f"county:{n}": vars(st) for n, (_, _, st) in others.items()},
         },
         "contests": out_contests,
     }
@@ -126,6 +186,10 @@ def print_summary(doc: dict) -> None:
     for c in doc["contests"]:
         bits = ", ".join(f"{ch['name']} {ch['votes'] if ch['votes'] is not None else '-'}" for ch in c["choices"])
         print(f"  {c['title']:<34} [{c['status']}] {bits}")
+        for bc in c.get("by_county") or []:
+            v = ", ".join(f"{k} {n if n is not None else '-'}" for k, n in bc["votes"].items())
+            note = "" if bc["included"] else "  (not in total yet)"
+            print(f"      {bc['name']:<30} {v}{' (last good numbers)' if bc['stale'] else ''}{note}")
 
 
 def poll_forever(cfg: dict) -> None:
@@ -135,7 +199,7 @@ def poll_forever(cfg: dict) -> None:
             s = doc["sources"]
             print(f"{datetime.now():%H:%M:%S} refreshed - county {'ok' if s['county']['ok'] else 'ERROR'}, "
                   f"state {'ok' if s['state']['ok'] else 'ERROR'}")
-            for k in ("county", "state"):
+            for k in s:
                 if s[k].get("error"):
                     print("   ", s[k]["error"])
         except Exception as e:
@@ -166,6 +230,19 @@ def main() -> None:
             print(st.error)
         for title in county:
             print(title)
+        # Other counties: only the contests that look like what we match on, e.g. RTM.
+        for c in cfg["contests"]:
+            for entry in cfg.get("other_counties", []):
+                if entry.get("name") not in c.get("also_counties", []):
+                    continue
+                contests, st = sources.fetch_other_county(entry)
+                match = entry.get("contest_match", {}).get(c["id"], c["contest_match"])
+                print(f"\n{entry['name']} (looking for {match}):")
+                if not st.ok:
+                    print("  ", st.error)
+                    continue
+                found = sources.find_contest(contests, match)
+                print("   matched:", found.title if found else "NOTHING - adjust contest_match")
         return
     if args.once:
         print_summary(refresh(cfg, verbose=True))

@@ -27,10 +27,22 @@ tests/test_with_sample_data.py  runs everything on made-up sample numbers, offli
 
 **County results** come from Santa Clara County's results site, which is hosted by Clarity Elections (`results.enr.clarityelections.com/CA/Santa_Clara/...`). The fetcher reads Clarity's `summary.zip` export (a CSV), and falls back to the site's `summary.json`.
 
+**Measure RTM** passes on a majority of all votes in five counties combined, so the board adds up five results sites (`other_counties` in `config.json`) and lists each county under the total, marking any that are not in it yet:
+
+| County | Site | Read as | Link in config.json |
+|---|---|---|---|
+| Santa Clara | Clarity | `summary.zip` | `county.clarity_url` (same as the local races) |
+| Contra Costa | Clarity | `summary.zip` | paste on election night |
+| Alameda | alamedacountyca.gov/rovresults | the results web page | already set (Nov 3, 2026 page, id 260) |
+| San Mateo | smcacre.gov | the results web page | paste on election night |
+| San Francisco | sfelections.org | `data/summary.xml` | already set (`/results/20261103/`) |
+
+A county with no link, or no votes yet, is shown as "not in total yet" and left out of the sum.
+
 ## One-time setup
 
 1. Install Python 3.11 or newer if needed (python.org, tick "Add to PATH").
-2. Double-click `setup.bat`. It creates a private `.venv` folder and installs `requests`.
+2. Double-click `setup.bat`. It creates a private `.venv` folder and installs `requests` and `truststore` (which lets Python use Windows' certificate store; without it the Clarity and state sites fail with `CERTIFICATE_VERIFY_FAILED`). If you set up before `truststore` was added, run `setup.bat` again.
 3. Optional: `git init` in this folder, or open it in VS Code and let Claude Code do it.
 
 ## Test it now
@@ -52,7 +64,8 @@ and open http://localhost:8000/web/. The state side is live already: the Secreta
 1. **About 7:45 p.m.:** open the county's results page from https://vote.santaclaracounty.gov (look for "Election Results"). Copy the address from the browser bar. It looks like
    `https://results.enr.clarityelections.com/CA/Santa_Clara/123456/web.345678/#/summary`
 2. Paste it into `config.json` as `county.clarity_url` and save.
-3. Run `.venv\Scripts\python app\election_night.py --list-contests`. This prints every contest name the county uses. Check that the names for Palo Alto council, PAUSD, Valley Water District 7, Measure J and Measure RTM contain the words in each race's `contest_match` in `config.json` (matching ignores capitals and punctuation). Adjust if needed.
+   **For Measure RTM**, also paste the Contra Costa and San Mateo links into `other_counties` (each entry's `_help` says where to find it), and check that the Alameda and San Francisco links still open.
+3. Run `.venv\Scripts\python app\election_night.py --list-contests`. This prints every contest name the county uses, then which contest it matched for RTM in each other county. Check that the names for Palo Alto council, PAUSD, Valley Water District 7, Measure J and Measure RTM contain the words in each race's `contest_match` in `config.json` (matching ignores capitals and punctuation). Adjust if needed.
 4. Run `.venv\Scripts\python app\election_night.py --once` for a one-line-per-race check. Every race should show numbers or dashes, with no "no contest matching" warnings.
 5. Double-click `run_dashboard.bat`. It starts the fetcher and opens Edge full screen. Press **Alt+F4** to close the full-screen page. Close the black window to stop the fetcher.
 
@@ -70,7 +83,7 @@ The fetcher re-reads `config.json` on every round, so you can fix a matcher with
   J,No,5900
   ```
 
-  `contest_id` and `choice` must match `config.json` exactly. Rows with blank votes are ignored. The footer says "includes hand-entered numbers" while any are in use. Empty the file (keep the header line) to go back to fetched numbers.
+  `contest_id` and `choice` must match `config.json` exactly. For one county's Measure RTM numbers, use `RTM:` plus the county name, e.g. `RTM:San Mateo,Yes,81000` (a plain `RTM` row replaces the five-county total instead). Rows with blank votes are ignored. The footer says "includes hand-entered numbers" while any are in use. Empty the file (keep the header line) to go back to fetched numbers.
 
 ## Changing things
 
@@ -82,5 +95,5 @@ The fetcher re-reads `config.json` on every round, so you can fix a matcher with
 ## Notes
 
 - Shares are computed from votes within each race, so they can differ by a tenth of a point from what the county shows (the county includes write-ins and, for multi-seat races, divides differently).
-- Measure RTM is shown with the Santa Clara County count only. The county site does not include the other four counties.
+- Measure RTM is the five-county total. Each county's site updates on its own schedule, so the total mixes counts from slightly different times.
 - Nothing here needs an account or key; the program only reads public pages.

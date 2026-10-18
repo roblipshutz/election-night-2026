@@ -58,6 +58,11 @@ tr.lead .en-bar > i { background: var(--sec); }
 .en-yn { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .en-ynbar { height: clamp(12px, 1vw, 24px); border-radius: 99px; background: var(--track); position: relative; overflow: hidden; }
 .en-ynbar > i { position: absolute; inset: 0 auto 0 0; background: var(--muted-bar); transition: width .8s ease; }
+.en-cty { margin: 0; font-size: var(--fs-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); padding-top: clamp(4px, .4vw, 10px); line-height: 1.45; }
+.en-cty .cap { color: var(--ink); font-weight: 600; }
+.en-cty .home { color: var(--ink); font-weight: 600; }
+.en-cty .out { opacity: .65; font-style: italic; }
+.en-cty .warn { color: var(--lose); }
 .en-ynbar::after, .en-props .en-bar::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 2px dashed var(--ref); opacity: .7; }
 .en-props td { padding-block: clamp(2px, .26vw, 7px); }
 .en-props td.num { color: var(--sec); font-weight: 700; width: 2.6em; }
@@ -158,6 +163,30 @@ function drawMeasure(c) {
   const yes = c.choices.find((x) => x.name === 'Yes') || {}; const no = c.choices.find((x) => x.name === 'No') || {};
   const yn = el('div', 'en-yn'); yn.append(el('span', null, 'Yes ' + fmtN(yes.votes)), el('span', null, 'No ' + fmtN(no.votes)));
   box.append(yn);
+  if (c.by_county) drawCounties(box, c);
+}
+
+// Measure RTM: which counties are in the combined count, each with its own Yes share.
+// e.g. "Counted 3 of 5 counties: Santa Clara 52.2% Yes · Alameda 60.0% · San Francisco 60.0% · Not yet: Contra Costa, San Mateo"
+function drawCounties(box, c) {
+  const all = c.by_county, inc = all.filter((x) => x.included), out = all.filter((x) => !x.included);
+  const p = el('p', 'en-cty');
+  p.append(el('span', 'cap', inc.length === all.length ? `All ${all.length} counties counted: `
+    : inc.length ? `Counted ${inc.length} of ${all.length} counties: ` : `No county has reported yet. `));
+  inc.forEach((bc, i) => {
+    if (i) p.append(' · ');
+    const s = el('span', (bc === all[0] ? 'home' : '') + (bc.stale ? ' warn' : ''),
+      (bc.name + ' ' + fmtP(bc.yes_pct) + (i === 0 ? ' Yes' : '') + (bc.stale ? ' (old)' : '')).replace(/ /g, ' '));
+    s.title = bc.stale ? 'Site not answering; showing last good numbers. ' + (bc.error || '') : bc.label;
+    p.append(s);
+  });
+  if (out.length) {
+    if (inc.length) p.append(' · ');
+    const s = el('span', 'out', 'Not yet: ' + out.map((x) => x.name).join(', '));
+    s.title = out.map((x) => x.error || x.name + ': no votes yet').join('\n');
+    p.append(s);
+  }
+  box.append(p);
 }
 
 function drawDuel(c) {
@@ -214,9 +243,14 @@ function render(doc) {
   const parts = [];
   if (by.council && counted(by.council)) parts.push('Council: ' + leaders(by.council).join(', '));
   if (by.pausd && counted(by.pausd)) parts.push('Board: ' + leaders(by.pausd).join(', '));
-  ['J', 'RTM'].forEach((id) => { const m = by[id]; if (m && m.status !== 'Awaiting') parts.push(m.title + ' ' + m.status.toLowerCase()); });
+  ['J', 'RTM'].forEach((id) => {
+    const m = by[id]; if (!m || m.status === 'Awaiting') return;
+    const partial = m.by_county && m.counties_missing.length ? ` (${m.counties_included.length} of ${m.by_county.length} counties)` : '';
+    parts.push(m.title + ' ' + m.status.toLowerCase() + partial);
+  });
   document.getElementById('takeaway').textContent = parts.length ? 'Leading now · ' + parts.join(' · ') : (doc.subtitle || '') + ' · polls close at 8 p.m.';
-  document.getElementById('foot-left').textContent = 'Sources: Santa Clara County Registrar of Voters · California Secretary of State';
+  document.getElementById('foot-left').textContent = 'Sources: Santa Clara County Registrar of Voters · California Secretary of State'
+    + (by.RTM && by.RTM.by_county ? ' · Measure RTM: ' + by.RTM.by_county.slice(1).map((x) => x.name).join(', ') + ' election offices' : '');
   document.getElementById('foot-right').textContent = 'Checked ' + new Date(doc.fetched_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     + (doc.manual_override_rows ? ' · includes hand-entered numbers' : '');
 }

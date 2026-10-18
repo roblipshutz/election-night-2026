@@ -7,7 +7,8 @@
       in `config.json` → `county.clarity_url`, run `app\election_night.py --list-contests`,
       then put the placeholder back.
 - [ ] Rehearse on the auditorium projector (full screen, check everything fits and reads from the back).
-- [ ] **Measure RTM: show the five-county combined total.** RTM passes on a simple majority of all
+- [ ] Election night: paste the Contra Costa and San Mateo links into `config.json` → `other_counties` for RTM.
+- [x] **Measure RTM: show the five-county combined total.** RTM passes on a simple majority of all
       votes in Alameda, Contra Costa, San Mateo, Santa Clara and San Francisco combined; today the
       board shows Santa Clara only. Find each county's results system and download format (SF runs
       its own site), add a reader for each, sum them, and show the combined Yes % with Santa Clara
