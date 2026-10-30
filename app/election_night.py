@@ -127,7 +127,8 @@ def refresh(cfg: dict, verbose: bool = False) -> dict:
             inc = [bc for bc in by_county if bc["included"]]
             reported = {ch["name"]: sum(bc["votes"][ch["name"]] or 0 for bc in inc) for ch in c["choices"]} if inc else None
         elif c["source"] == "county":
-            found = sources.find_contest(county, c["contest_match"]) if county else None
+            found = (sources.find_contest(county, c["contest_match"],
+                                          candidates_only=c.get("threshold") is None) if county else None)
             reported = found.votes if found else None
             failed = not county_status.ok
             if county and not found and verbose:

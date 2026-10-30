@@ -7,7 +7,7 @@
   "county": {
     "name": "Santa Clara County",
     "clarity_url": "PASTE_ELECTION_NIGHT_RESULTS_LINK_HERE",
-    "_help": "On election night, open the county's results page (linked from vote.santaclaracounty.gov), copy the address from the browser and paste it here. It looks like https://results.enr.clarityelections.com/CA/Santa_Clara/123456/web.345678/#/summary"
+    "_help": "On election night open https://vote.santaclaracounty.gov/view-election-results and click 'View latest election results'. When that page shows the November 3, 2026 General Election, copy the address from the browser and paste it here. As of Oct 30 the button still opens the June 2 primary (https://results.enr.clarityelections.com/CA/Santa_Clara/126487/), which is handy for a dry run with --list-contests and --once."
   },
   "state": {
     "api_base": "https://api.sos.ca.gov/returns"

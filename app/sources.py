@@ -140,36 +140,52 @@ def _clarity_parts(url: str):
             "config.json county.clarity_url is not a Clarity results link yet. "
             "Paste the county's results page address there (see README)."
         )
-    return m.group(1), m.group(2), m.group(3)
+    # The "web.NNNNNN" part of a results address is the website template (the
+    # same 345435 shows up in 2024 and 2026 links), not the data version, so it
+    # is not returned. current_ver.txt gives the data version.
+    return m.group(1), m.group(2)
 
 
-def _clarity_version(base: str, eid: str, fallback: str | None) -> str:
+def _clarity_version(base: str, eid: str) -> str:
     try:
         r = requests.get(f"{base}/{eid}/current_ver.txt", headers=HEADERS, timeout=TIMEOUT)
         if r.ok and r.text.strip().isdigit():
             return r.text.strip()
     except requests.RequestException:
         pass
-    if fallback:
-        return fallback
-    raise ValueError("Could not find the county results version number.")
+    raise ValueError("Could not read current_ver.txt from the results site.")
 
 
-def _parse_clarity_summary_csv(text: str) -> dict[str, ContestResult]:
-    """Clarity's summary.csv: one row per (contest, choice)."""
+def _decode(raw: bytes) -> str:
+    """Santa Clara's summary.csv is Windows-1252 ("San José"), not UTF-8."""
+    try:
+        return raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return raw.decode("cp1252", "replace")
+
+
+def _parse_clarity_summary_csv(text: str) -> tuple[dict[str, ContestResult], int | None]:
+    """Clarity's summary.csv: one row per (contest, choice). Contest names end in
+    " (Vote For N)", which is stripped. Also returns the largest "ballots cast"
+    figure, i.e. ballots counted so far countywide."""
     out: dict[str, ContestResult] = {}
+    ballots = None
     reader = csv.DictReader(io.StringIO(text))
     cols = {c.lower().strip(): c for c in (reader.fieldnames or [])}
     c_contest = cols.get("contest name")
     c_choice = cols.get("choice name")
     c_votes = cols.get("total votes")
+    c_cast = cols.get("ballots cast")
     if not (c_contest and c_choice and c_votes):
         raise ValueError(f"Unexpected county CSV columns: {reader.fieldnames}")
     for row in reader:
-        title = html.unescape(row[c_contest].strip())
+        title = re.sub(r"\s*\(Vote For \d+\)\s*$", "", html.unescape(row[c_contest].strip()), flags=re.I)
         cr = out.setdefault(title, ContestResult(title=title))
         cr.votes[html.unescape(row[c_choice].strip())] = _num(row[c_votes])
-    return out
+        cast = _num(row.get(c_cast)) if c_cast else None
+        if cast is not None and (ballots is None or cast > ballots):
+            ballots = cast
+    return out, ballots
 
 
 def _parse_clarity_summary_json(data) -> dict[str, ContestResult]:
@@ -191,17 +207,18 @@ def _parse_clarity_summary_json(data) -> dict[str, ContestResult]:
 
 def fetch_county(clarity_url: str, name: str = "County") -> tuple[dict[str, ContestResult], SourceStatus]:
     try:
-        base, eid, ver_hint = _clarity_parts(clarity_url)
-        ver = _clarity_version(base, eid, ver_hint)
+        base, eid = _clarity_parts(clarity_url)
+        ver = _clarity_version(base, eid)
         contests: dict[str, ContestResult] = {}
+        ballots = None
         errors = []
         # 1) summary.zip -> summary.csv (long-standing Clarity export)
         try:
             r = requests.get(f"{base}/{eid}/{ver}/reports/summary.zip", headers=HEADERS, timeout=TIMEOUT)
             r.raise_for_status()
             with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-                name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
-                contests = _parse_clarity_summary_csv(z.read(name).decode("utf-8-sig", "replace"))
+                csv_name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
+                contests, ballots = _parse_clarity_summary_csv(_decode(z.read(csv_name)))
         except Exception as e:
             errors.append(f"summary.zip: {e}")
         # 2) summary.json (what the results website itself reads)
@@ -215,7 +232,7 @@ def fetch_county(clarity_url: str, name: str = "County") -> tuple[dict[str, Cont
         if not contests:
             raise ValueError("; ".join(errors) or "no contests found")
         return contests, SourceStatus(ok=True, as_of=datetime.now().isoformat(timespec="seconds"),
-                                      label=f"County results update {ver}")
+                                      label=f"Update {ver}" + (f" · {ballots:,} ballots counted" if ballots else ""))
     except Exception as e:
         return {}, SourceStatus(ok=False, error=f"{name} results: {e}")
 
@@ -356,12 +373,17 @@ def fetch_other_county(entry: dict) -> tuple[dict[str, ContestResult], SourceSta
 # Matching helpers
 # --------------------------------------------------------------------------
 
-def find_contest(contests: dict[str, ContestResult], must_contain: list[str]) -> ContestResult | None:
+def find_contest(contests: dict[str, ContestResult], must_contain: list[str],
+                 candidates_only: bool = False) -> ContestResult | None:
     """First contest whose name contains every phrase in must_contain as whole words
-    (case-insensitive), so "RTM" does not match "Fire Department" or "Measure J" match "Measure JJ"."""
+    (case-insensitive), so "RTM" does not match "Fire Department" or "Measure J" match "Measure JJ".
+    candidates_only skips contests named "Measure ...", so a candidate race's words
+    (e.g. "Palo Alto Unified") can't pick up a measure from the same district."""
     wants = [re.compile(r"\b" + re.escape(_norm(w)) + r"\b") for w in must_contain]
     for title, cr in contests.items():
         t = _norm(title)
+        if candidates_only and t.startswith("MEASURE"):
+            continue
         if all(w.search(t) for w in wants):
             return cr
     return None
